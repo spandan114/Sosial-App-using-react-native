@@ -24,7 +24,7 @@ const CustomHeader = ({signOut,authState,navigation}) => {
         }}
         >
             <Body>
-                <Title>Social App</Title>
+                <Title>Travel Gram</Title>
             </Body>
                 <Right>
                     {authState.isAuthonticated && (

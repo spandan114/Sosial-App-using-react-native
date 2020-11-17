@@ -12,7 +12,17 @@ import {
     Content
 } from 'native-base'
 
- const signup = () => {
+import database from '@react-native-firebase/database';
+import storage from '@react-native-firebase/storage';
+import ProgressBar from 'react-native-progress/Bar'
+import ImagePicker from 'react-native-image-picker';
+import {options} from '../utils/options'
+import propType from 'prop-types'
+import {signUp} from '../action/auth'
+import {connect} from 'react-redux'
+
+
+ const signup = ({signUp}) => {
 
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
@@ -27,19 +37,57 @@ import {
     const [imageUploading, setImageUploading] = useState(false)
     const [uploadStatus, setUploadStatus] = useState(null)
 
+    const shooseImage = async () =>{
+      ImagePicker.showImagePicker(options, (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.error) {
+          console.log('ImagePicker Error: ', response.error);
+        } else if (response.customButton) {
+          console.log('User tapped custom button: ', response.customButton);
+        } else {
+         // const source = { uri: response.uri };
+       
+          // You can also display the image using data:
+          // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+          console.log(response)
+          uploadImage(response)
+        }
+      })
+    }
+
+    const uploadImage = async (response) => {
+      setImageUploading(true)
+      const reference = storage().ref(response.fileName);
+      const Task = await reference.putFile(response.path);
+      Task.on('state_changed',(taskSnapshot) => {
+        const percentage = (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 1000
+        setUploadStatus(percentage)
+      })
+     Task.then(async () => {
+       const url = await reference.getDownloadURL()
+       setImage(url)
+       setUploadStatus(false)
+     })
+    }
+
+    const doSignup = async () => {
+      signUp({name,instaUserName,email,password,image,bio,country})
+    }
+
     return (
         <Container style={styles.container}>
           <Content padder>
             <ScrollView contentContainerStyle={{flexGrow: 1}}>
               <View style={styles.imageContainer}>
-                <TouchableOpacity onPress={()=>{}}>
+                <TouchableOpacity onPress={()=>shooseImage()}>
                   <Thumbnail large source={{uri: image}} />
                 </TouchableOpacity>
               </View>
     
-              {/* {imageUploading && (
+              {imageUploading && (
                 <ProgressBar progress={uploadStatus} style={styles.progress} />
-              )} */}
+              )}
     
               <Form>
                 <Item regular style={styles.formItem}>
@@ -91,7 +139,7 @@ import {
                     onChangeText={(text) => setCountry(text)}
                   />
                 </Item>
-                <Button regular block onPress={()=>{}}>
+                <Button regular block onPress={()=> doSignup()}>
                   <Text>SignUp</Text>
                 </Button>
               </Form>
@@ -101,7 +149,15 @@ import {
       );
 }
 
-export default signup
+const mapDispatchToProps = {
+  signUp : (data) => signUp(data)
+}
+
+signup.propType = {
+  signUp: propType.func.isRequired
+}
+
+export default connect(null,mapDispatchToProps)(signup)
 
 const styles = StyleSheet.create({
     container: {

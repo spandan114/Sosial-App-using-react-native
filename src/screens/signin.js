@@ -11,13 +11,18 @@ import {
     H3
 } from 'native-base'
 import Welcome from '../assets/undraw_welcome_cats_thqn.png'
+import propType from 'prop-types'
+import {signIn} from '../action/auth'
+import {connect} from 'react-redux'
 
-const signin = ({navigation}) => {
+const signin = ({navigation,signIn}) => {
 
     const [email,setEmail] = useState('')
     const [password,setPassword] = useState('')
 
-    const doSignIn = () => {}
+    const doSignIn = () => {
+      signIn({email,password})
+    }
 
     return (
         <Container style={styles.container}>
@@ -65,7 +70,15 @@ const signin = ({navigation}) => {
      );
 }
 
-export default signin
+const mapDispatchToProps = {
+  signIn : (data) => signIn(data)
+}
+
+signin.propType = {
+  signIn: propType.func.isRequired
+}
+
+export default connect(null,mapDispatchToProps)(signin)
     
 const styles = StyleSheet.create({
  container: {
