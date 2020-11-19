@@ -12,7 +12,6 @@ import {
     Content
 } from 'native-base'
 
-import database from '@react-native-firebase/database';
 import storage from '@react-native-firebase/storage';
 import ProgressBar from 'react-native-progress/Bar'
 import ImagePicker from 'react-native-image-picker';

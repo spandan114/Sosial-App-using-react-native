@@ -26,20 +26,20 @@ const App = ({authState}) => {
   const dispatch = useDispatch();
 
   const onAuthStateChange = (user) => {
+
     if(user){
       dispatch({
         type:IS_AUTHONTICATED,
         payload: true
       })
-      console.log(user._user.uid)
-
+     
       database()
-      .ref(`/user/${user._user.uid}`)
-      .on('value',(snapshot) => {
-        console.log('USER_DETAILS',snapshot.val())
+      .ref(`/users/${user._user.uid}`)
+      .on('value', (snapshot) => {
+        console.log('USER DETAILS', snapshot.val())
         dispatch({
-          type:SET_USER,
-          payload:snapshot.val()
+          type: SET_USER,
+          payload: snapshot.val(),
         })
       })
 

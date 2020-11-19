@@ -13,7 +13,21 @@ import {
   Icon,
 } from 'native-base';
 
-const AddPost = () => {
+import database from '@react-native-firebase/database';
+import storage from '@react-native-firebase/storage';
+import ProgressBar from 'react-native-progress/Bar'
+import Snackbar from "react-native-snackbar";
+import ImagePicker from 'react-native-image-picker';
+import {options} from '../utils/options'
+import propTypes from 'prop-types'
+import {signUp} from '../action/auth'
+import {connect} from 'react-redux'
+import shortid from 'shortid'
+import {RequestPermission} from "../utils/AskPermission"
+
+const AddPost = ({navigation, userState}) => {
+
+  console.log(userState.user.name)
 
     const [location, setLocation] = useState('')
     const [description, setDescription] = useState('')
@@ -22,13 +36,87 @@ const AddPost = () => {
     const [imageUploading, setImageUploading] = useState(false)
     const [uploadStatus, setUploadStatus] = useState(null)
 
-    const addPost = () => {
-        //
+
+    const chooseImage = async () =>{
+      RequestPermission()
+      ImagePicker.showImagePicker(options, (response) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.error) {
+          console.log('ImagePicker Error: ', response.error);
+        } else if (response.customButton) {
+          console.log('User tapped custom button: ', response.customButton);
+        } else {
+         // const source = { uri: response.uri };
+       
+          // You can also display the image using data:
+          // const source = { uri: 'data:image/jpeg;base64,' + response.data };
+          console.log(response)
+          uploadImage(response)
+        }
+      })
     }
 
-    const chooseImage = () => {
-        //
+    const uploadImage = async (response) => {
+      setImageUploading(true)
+      const reference = storage().ref(response.fileName);
+
+      const task = reference.putFile(response.path)
+      task.on('state_changed', (taskSnapshot) => {
+          const percentage = (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes) * 1000
+          console.log("percentage bar",percentage)
+          setUploadStatus(percentage)
+      })
+
+      task.then(async () => {
+       const url = await reference.getDownloadURL()
+       setImage(url)
+       setUploadStatus(null)
+     })
     }
+
+
+  const addPost = async () => {
+    try {
+        if (!location || !description || !image) {
+            return Snackbar.show({
+                text: "Please add all field",
+                textColor: "white",
+                backgroundColor: "red"
+            })
+        }
+
+        const uid = shortid.generate()
+
+        await database().ref(`/posts/${uid}`).set({ 
+            location,
+            description,
+            picture: image,
+            by: userState.user.name,
+            date: Date.now(),
+            instaId: userState.user.instaUserName,
+            userImage: userState.user.image,
+            userId: userState.user.uid,
+            id: uid
+        })
+
+        Snackbar.show({
+            text: "Post upload successfully",
+            textColor: "white",
+            backgroundColor: "green"
+        })
+        console.log("Post Added SUCCESS")
+        navigation.navigate('Home')
+
+    } catch (error) {
+        console.log(error)
+        Snackbar.show({
+            text: "Post upload failed",
+            textColor: "white",
+            backgroundColor: "red"
+        })
+    }
+}
 
     return (
         <Container style={styles.container}>
@@ -96,7 +184,15 @@ const AddPost = () => {
       );
 }
 
-export default AddPost
+const mapStateToProps = (state) => ({
+  userState: state.auth,
+})
+
+AddPost.propTypes = {
+  userState: propTypes.object.isRequired
+}
+
+export default connect(mapStateToProps)(AddPost)
 
 const styles = StyleSheet.create({
     container: {
