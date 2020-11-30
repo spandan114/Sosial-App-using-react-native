@@ -18,6 +18,7 @@ import CustomHeader from './layout/CustomHeader'
 import {IS_AUTHONTICATED,SET_USER} from './action/actionType'
 import EmptyContainer from './component/EmptyContainer'
 import {RequestPermission} from './utils/AskPermission'
+import Profile from './screens/Profile';
 
 const Stack = createStackNavigator();
 
@@ -74,6 +75,7 @@ const App = ({authState}) => {
               <Stack.Screen name="Home" component={Home}/>
               {/* Add Post */}
               <Stack.Screen name="AddPost" component={AddPost}/>
+              <Stack.Screen name="profile" component={Profile}/>
             </>
           ):(
             <>

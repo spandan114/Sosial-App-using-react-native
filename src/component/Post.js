@@ -13,7 +13,7 @@ import {
 } from 'native-base';
 import database from '@react-native-firebase/database';
 
-const Post = ({item,userDetails}) => {
+const Post = ({item,userDetails,navigation}) => {
 
   const [upvote, setUpvote] = useState(0)
   const [downvote, setDownvote] = useState(0)
@@ -75,6 +75,7 @@ const Post = ({item,userDetails}) => {
           <Thumbnail source={{uri: item.userImage}} small />
           <Body>
             <Text
+            onPress={navigation.navigate('profile')}
               style={{
                 color: '#fdcb9e',
               }}>
